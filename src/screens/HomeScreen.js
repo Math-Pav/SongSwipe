@@ -1,98 +1,176 @@
-import { ScrollView, View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+// HomeScreen.js
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Animated, Image, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import { colors, typography, spacing, borderRadius } from '../theme';
+import IconButton from '../components/IconButton';
 
-const HomeScreen = ({ navigation }) => {
+export default function HomeScreen({ navigation }) {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
+  const bounceAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 8,
+        tension: 40,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(bounceAnim, {
+          toValue: -10,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(bounceAnim, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
   return (
-    <LinearGradient
-      colors={['#0a014f', '#120078', '#9d00ff']}
-      style={styles.wrapper}
-    >
-      
-      <ScrollView contentContainerStyle={{ ...styles.container, flexGrow: 1 }}>
+    <LinearGradient colors={colors.gradientPrimary} style={styles.container}>
+      <View style={styles.header}>
+        <IconButton 
+          icon="trophy" 
+          onPress={() => alert('Classement - Bientôt disponible')}
+        />
+        <IconButton 
+          icon="settings-outline" 
+          onPress={() => alert('Paramètres - Bientôt disponible')}
+        />
+      </View>
+
+      <Animated.View 
+        style={[
+          styles.centerContent,
+          {
+            opacity: fadeAnim,
+            transform: [{ scale: scaleAnim }],
+          },
+        ]}
+      >
+        <Animated.View 
+          style={[
+            styles.mascotteContainer,
+            {
+              transform: [{ translateY: bounceAnim }],
+            },
+          ]}
+        >
+          <Image 
+            source={require('../../assets/images/mascotte.png')}
+            style={styles.mascotte}
+            resizeMode="contain"
+          />
+        </Animated.View>
         
         <Text style={styles.title}>SongSwipe</Text>
-
-        <Text style={styles.subtitle}>
-          Défie tes amis et ta famille dans ce jeu de blind test musical palpitant !{"\n"}{"\n"}
-        </Text>
-
-        <TouchableOpacity onPress={() => navigation.navigate('Game')} activeOpacity={0.8}>
-          <LinearGradient
-            colors={['#ff00c8', '#b300ff']}
-            style={styles.buttonBorder}
-          >
-            <View style={styles.buttonContent}>
-              <Text style={styles.buttonText}>COMMENCER</Text>
-            </View>
-          </LinearGradient>
+        <Text style={styles.slogan}>Devinez la musique, battez vos records !</Text>
+        
+        <TouchableOpacity 
+          style={styles.button}
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate('Mode')}
+        >
+          <Text style={styles.buttonText}>Commencer</Text>
         </TouchableOpacity>
-      </ScrollView>
+      </Animated.View>
+
+      <View style={styles.footer}>
+        <View style={styles.waveContainer}>
+          <Ionicons name="pulse" size={200} color={colors.glassEffect} />
+        </View>
+      </View>
     </LinearGradient>
   );
-};
-
-export default HomeScreen;
+}
 
 const styles = StyleSheet.create({
-  wrapper: {
+  container: {
     flex: 1,
   },
-  container: {
-    padding: 20,
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xxl + spacing.md,
+    paddingBottom: spacing.md,
+  },
+  centerContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+  },
+  mascotteContainer: {
+    marginBottom: spacing.lg,
+    width: 200,
+    height: 200,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  perso: {
-    position: 'absolute',
-    top: 20,
-    left: 20,
-    width: 80,
-    height: 80,
-  },
-  logo: {
-    width: 150,
-    height: 150,
-    marginBottom: 20,
+  mascotte: {
+    width: '100%',
+    height: '100%',
   },
   title: {
-    fontSize: 48,
-    fontWeight: '900',
-    fontStyle: 'italic',
-    textAlign: 'center',
-    color: '#ffffff',
-    textShadowColor: '#a400ff',
-    textShadowRadius: 25,
-    marginBottom: 40,
+    ...typography.h1,
+    color: colors.white,
+    marginBottom: spacing.md,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 4 },
+    textShadowRadius: 8,
   },
-  subtitle: {
-    color: '#ddd',
-    fontSize: 16,
+  slogan: {
+    ...typography.body,
+    fontSize: typography.fontSize.lg,
+    color: colors.white,
+    opacity: 0.9,
     textAlign: 'center',
-    marginBottom: 40,
-    fontStyle: 'italic',
-    width: '80%',
+    marginBottom: spacing.xxl,
   },
-  buttonBorder: {
-    borderRadius: 32,
-    padding: 4,
-    marginVertical: 10,
+  button: {
+    backgroundColor: colors.white,
+    paddingVertical: 20,
+    paddingHorizontal: 80,
+    borderRadius: borderRadius.xl,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 5 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 5,
+    shadowRadius: 8,
     elevation: 8,
   },
-  buttonContent: {
-    backgroundColor: '#be68b4ffff',
-    borderRadius: 28,
-    paddingVertical: 15,
-    paddingHorizontal: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   buttonText: {
-    color: '#fff',
-    fontSize: 18,
+    color: colors.primaryDark,
+    fontSize: 26,
     fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    opacity: 0.3,
+    zIndex: -1,
+  },
+  waveContainer: {
+    transform: [{ rotate: '90deg' }],
   },
 });
