@@ -47,7 +47,7 @@ export default function HomeScreen({ navigation }) {
       <View style={styles.header}>
         <IconButton 
           icon="trophy" 
-          onPress={() => alert('Classement - Bientôt disponible')}
+          onPress={() => navigation.navigate('Classement')}
         />
         <IconButton 
           icon="settings-outline" 
