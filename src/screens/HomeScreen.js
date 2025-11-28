@@ -1,6 +1,5 @@
-// HomeScreen.js
 import React from 'react';
-import { ScrollView, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const HomeScreen = ({ navigation }) => {
@@ -9,6 +8,12 @@ const HomeScreen = ({ navigation }) => {
       colors={['#0a014f', '#120078', '#9d00ff']}
       style={styles.wrapper}
     >
+      <Image
+        source={require('../../assets/images/perso.png')}
+        style={styles.perso}
+        resizeMode="contain"
+      />
+
       <ScrollView contentContainerStyle={{ ...styles.container, flexGrow: 1 }}>
         
         <Text style={styles.title}>SongSwipe</Text>
@@ -27,16 +32,12 @@ const HomeScreen = ({ navigation }) => {
             </View>
           </LinearGradient>
         </TouchableOpacity>
-
-
-
       </ScrollView>
     </LinearGradient>
   );
 };
 
 export default HomeScreen;
-
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -46,6 +47,18 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  perso: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    width: 80,
+    height: 80,
+  },
+  logo: {
+    width: 150,
+    height: 150,
+    marginBottom: 20,
   },
   title: {
     fontSize: 48,
@@ -57,7 +70,6 @@ const styles = StyleSheet.create({
     textShadowRadius: 25,
     marginBottom: 40,
   },
-
   subtitle: {
     color: '#ddd',
     fontSize: 16,
@@ -67,26 +79,23 @@ const styles = StyleSheet.create({
     width: '80%',
   },
   buttonBorder: {
-    borderRadius: 32,    
-    padding: 4,            
+    borderRadius: 32,
+    padding: 4,
     marginVertical: 10,
-
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 8,
   },
-
   buttonContent: {
     backgroundColor: '#be68b4ffff',
-    borderRadius: 28,         
+    borderRadius: 28,
     paddingVertical: 15,
     paddingHorizontal: 50,
     alignItems: 'center',
     justifyContent: 'center',
   },
-
   buttonText: {
     color: '#fff',
     fontSize: 18,
