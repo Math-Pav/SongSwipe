@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { fetchTracks } from '../services/itunesAPI';
 
 export const useTracks = (term = '2000s', limit = 10) => {

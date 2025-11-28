@@ -1,6 +1,5 @@
-// src/screens/GameScreen.js
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { useTracks } from '../hooks/UseTracks';
 import AudioPlayer from '../components/game/AudioPlayer';
 import QCM from '../components/game/QCM';
@@ -44,7 +43,7 @@ const GameScreen = ({ navigation }) => {
       return;
     }
     setCurrentIndex(nextIndex);
-    generateQuestion(nextIndex); // mise à jour du track
+    generateQuestion(nextIndex);
   };
 
   useEffect(() => {
@@ -66,6 +65,7 @@ const GameScreen = ({ navigation }) => {
   return (
     <LinearGradient colors={['#0a014f', '#120078', '#9d00ff']} style={styles.wrapper}>
       <ScrollView contentContainerStyle={{ ...styles.container, flexGrow: 1 }}>
+
         <Text style={styles.title}>🎵 Devine le titre !</Text>
         <Text style={styles.artist}>Artiste : {currentTrack.artistName}</Text>
         <Text style={styles.counter}>Morceau {currentIndex + 1}/{tracks.length}</Text>
@@ -92,47 +92,19 @@ const GameScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-  },
-  container: { 
-    padding: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: { 
-    fontSize: 28, 
-    fontWeight: 'bold', 
-    marginBottom: 20, 
-    textAlign: 'center', 
-    color: '#fff',
-    textShadowColor: '#a400ff',
-    textShadowRadius: 10
-  },
+  wrapper: { flex: 1 },
+  container: { padding: 20, alignItems: 'center', justifyContent: 'center' },
+  artistImage: { width: 120, height: 120, borderRadius: 60, marginBottom: 15 },
+  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 20, textAlign: 'center', color: '#fff', textShadowColor: '#a400ff', textShadowRadius: 10 },
   artist: { fontSize: 18, marginBottom: 10, color: '#fff' },
   counter: { fontSize: 16, marginBottom: 15, color: '#ccc' },
   score: { fontSize: 18, marginTop: 10, color: '#fff' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loading: { fontSize: 18, color: '#fff' },
-  button: { 
-    marginVertical: 10, 
-    width: '80%', 
-    borderRadius: 32, 
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 5 }, 
-    shadowOpacity: 0.3, 
-    shadowRadius: 5, 
-    elevation: 8 
-  },
+  button: { marginVertical: 10, width: '80%', borderRadius: 32, shadowColor: '#000', shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.3, shadowRadius: 5, elevation: 8 },
   buttonGradient: { paddingVertical: 15, borderRadius: 28, alignItems: 'center' },
   buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  progressContainer: { 
-    width: '80%', 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'space-between', 
-    marginVertical: 15 
-  },
+  progressContainer: { width: '80%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginVertical: 15 },
   skipIcon: { marginLeft: 10 }
 });
 

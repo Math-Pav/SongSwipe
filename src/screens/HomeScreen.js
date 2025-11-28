@@ -1,4 +1,3 @@
-import React from 'react';
 import { ScrollView, View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -8,12 +7,7 @@ const HomeScreen = ({ navigation }) => {
       colors={['#0a014f', '#120078', '#9d00ff']}
       style={styles.wrapper}
     >
-      <Image
-        source={require('../../assets/images/perso.png')}
-        style={styles.perso}
-        resizeMode="contain"
-      />
-
+      
       <ScrollView contentContainerStyle={{ ...styles.container, flexGrow: 1 }}>
         
         <Text style={styles.title}>SongSwipe</Text>

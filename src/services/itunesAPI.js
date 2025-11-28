@@ -1,4 +1,3 @@
-// src/services/itunesAPI.js
 export const fetchTracks = async (term = '2000s', country = 'fr', limit = 10) => {
   try {
     const response = await fetch(
