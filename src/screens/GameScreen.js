@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTracks } from '../hooks/UseTracks';
 import AudioPlayer from '../components/game/AudioPlayer';
 import QCM from '../components/game/QCM';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { saveScore } from '../services/scoreService';
 
 const GameScreen = ({ navigation }) => {
   const { tracks, loading } = useTracks('2000s', 10);
@@ -12,6 +14,17 @@ const GameScreen = ({ navigation }) => {
   const [currentTrack, setCurrentTrack] = useState(null);
   const [score, setScore] = useState(0);
   const [options, setOptions] = useState([]);
+  const [playerName, setPlayerName] = useState('Joueur');
+
+  useEffect(() => {
+    const loadPlayerName = async () => {
+      const pseudo = await AsyncStorage.getItem('userPseudo');
+      if (pseudo) {
+        setPlayerName(pseudo);
+      }
+    };
+    loadPlayerName();
+  }, []);
 
   const shuffleArray = (array) => array.sort(() => Math.random() - 0.5);
 
@@ -35,11 +48,29 @@ const GameScreen = ({ navigation }) => {
     nextTrack();
   };
 
+  const endGame = async (finalScore) => {
+    await saveScore(playerName, finalScore);
+    Alert.alert(
+      'Fin du jeu',
+      `Score final : ${finalScore}`,
+      [
+        {
+          text: 'Voir classement',
+          onPress: () => navigation.navigate('Classement'),
+        },
+        {
+          text: 'Retour',
+          onPress: () => navigation.goBack(),
+        },
+      ]
+    );
+  };
+
   const nextTrack = () => {
     const nextIndex = currentIndex + 1;
     if (nextIndex >= tracks.length) {
-      Alert.alert('Fin du jeu', `Score final : ${score}`);
-      navigation.goBack();
+      const finalScore = score;
+      endGame(finalScore);
       return;
     }
     setCurrentIndex(nextIndex);
@@ -65,8 +96,8 @@ const GameScreen = ({ navigation }) => {
   return (
     <LinearGradient colors={['#0a014f', '#120078', '#9d00ff']} style={styles.wrapper}>
       <ScrollView contentContainerStyle={{ ...styles.container, flexGrow: 1 }}>
-
-        <Text style={styles.title}>🎵 Devine le titre !</Text>
+        <Text style={styles.playerInfo}>Joueur : {playerName}</Text>
+        <Text style={styles.title}>Devine le titre !</Text>
         <Text style={styles.artist}>Artiste : {currentTrack.artistName}</Text>
         <Text style={styles.counter}>Morceau {currentIndex + 1}/{tracks.length}</Text>
 
@@ -105,7 +136,12 @@ const styles = StyleSheet.create({
   buttonGradient: { paddingVertical: 15, borderRadius: 28, alignItems: 'center' },
   buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
   progressContainer: { width: '80%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginVertical: 15 },
-  skipIcon: { marginLeft: 10 }
+  skipIcon: { marginLeft: 10 },
+  playerInfo: {
+    fontSize: 14,
+    color: '#ccc',
+    marginBottom: 10,
+  },
 });
 
 export default GameScreen;

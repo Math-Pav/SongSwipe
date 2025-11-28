@@ -1,20 +1,42 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Alert, Modal, TextInput, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing } from '../theme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { colors, typography, spacing, borderRadius } from '../theme';
 import Button from '../components/Button';
 import Card from '../components/Card';
 
 export default function DifficultyScreen({ navigation, route }) {
   const { mode } = route.params;
+  const [showPseudoModal, setShowPseudoModal] = useState(false);
+  const [pseudo, setPseudo] = useState('');
+  const [selectedDifficulty, setSelectedDifficulty] = useState(null);
 
-  const handleDifficultySelection = (difficulty) => {
+  const handleDifficultySelection = async (difficulty) => {
     if (difficulty === 'easy' && mode === 'solo') {
-      navigation.navigate('Game', { difficulty, mode });
+      const savedPseudo = await AsyncStorage.getItem('userPseudo');
+      if (savedPseudo) {
+        setPseudo(savedPseudo);
+      }
+      setSelectedDifficulty(difficulty);
+      setShowPseudoModal(true);
     } else {
-      alert(`Mode ${mode === 'solo' ? 'Solo' : 'Multijoueur'} ${difficulty === 'easy' ? 'Facile' : 'Difficile'} - En développement!`);
+      Alert.alert(
+        'Bientôt disponible',
+        `Mode ${mode === 'solo' ? 'Solo' : 'Multijoueur'} ${difficulty === 'easy' ? 'Facile' : 'Difficile'} - En développement!`
+      );
     }
+  };
+
+  const handleStartGame = async () => {
+    if (pseudo.trim().length < 2) {
+      Alert.alert('Erreur', 'Le pseudo doit contenir au moins 2 caractères');
+      return;
+    }
+    await AsyncStorage.setItem('userPseudo', pseudo.trim());
+    setShowPseudoModal(false);
+    navigation.navigate('Game', { difficulty: selectedDifficulty, mode });
   };
 
   return (
@@ -59,6 +81,48 @@ export default function DifficultyScreen({ navigation, route }) {
           />
         </Card>
       </View>
+
+      <Modal
+        visible={showPseudoModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowPseudoModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Entrez votre pseudo</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Votre pseudo"
+              placeholderTextColor="#999"
+              value={pseudo}
+              onChangeText={setPseudo}
+              maxLength={20}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity 
+                style={styles.cancelButton}
+                onPress={() => setShowPseudoModal(false)}
+              >
+                <Text style={styles.cancelButtonText}>Annuler</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.confirmButton}
+                onPress={handleStartGame}
+              >
+                <LinearGradient
+                  colors={['#ff00c8', '#b300ff']}
+                  style={styles.confirmGradient}
+                >
+                  <Text style={styles.confirmButtonText}>Jouer</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </LinearGradient>
   );
 }
@@ -111,5 +175,72 @@ const styles = StyleSheet.create({
   },
   button: {
     width: '100%',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
+  },
+  modalContent: {
+    backgroundColor: colors.darkCard,
+    borderRadius: borderRadius.lg,
+    padding: spacing.xl,
+    width: '100%',
+    maxWidth: 350,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    ...typography.h3,
+    color: colors.white,
+    marginBottom: spacing.lg,
+    textAlign: 'center',
+  },
+  input: {
+    backgroundColor: colors.white,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    fontSize: typography.fontSize.lg,
+    color: colors.primaryDark,
+    textAlign: 'center',
+    fontWeight: '600',
+    width: '100%',
+    marginBottom: spacing.lg,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    marginRight: spacing.sm,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.white,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: colors.white,
+    fontSize: typography.fontSize.base,
+    fontWeight: '600',
+  },
+  confirmButton: {
+    flex: 1,
+    marginLeft: spacing.sm,
+    borderRadius: borderRadius.md,
+    overflow: 'hidden',
+  },
+  confirmGradient: {
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+  },
+  confirmButtonText: {
+    color: colors.white,
+    fontSize: typography.fontSize.base,
+    fontWeight: 'bold',
   },
 });

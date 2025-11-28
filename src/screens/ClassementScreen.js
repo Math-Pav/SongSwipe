@@ -1,20 +1,24 @@
 // ClassementScreen.js
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-
-const CLASSMENT_DATA = [
-  { id: '1', rank: 1, name: 'Alice', score: 1500, games: 25 },
-  { id: '2', rank: 2, name: 'Bob', score: 1200, games: 22 },
-  { id: '3', rank: 3, name: 'Charlie', score: 1100, games: 20 },
-  { id: '4', rank: 4, name: 'Diana', score: 950, games: 18 },
-  { id: '5', rank: 5, name: 'Eve', score: 800, games: 15 },
-  { id: '6', rank: 6, name: 'Frank', score: 750, games: 14 },
-  { id: '7', rank: 7, name: 'Grace', score: 600, games: 12 },
-  { id: '8', rank: 8, name: 'Henry', score: 550, games: 10 },
-];
+import { getScores } from '../services/scoreService';
 
 const ClassementScreen = ({ navigation }) => {
+  const [classementData, setClassementData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadScores();
+  }, []);
+
+  const loadScores = async () => {
+    setLoading(true);
+    const scores = await getScores();
+    setClassementData(scores);
+    setLoading(false);
+  };
+
   const renderItem = ({ item, index }) => {
     const isTop3 = item.rank <= 3;
 
@@ -34,7 +38,7 @@ const ClassementScreen = ({ navigation }) => {
         <View style={styles.rankContainer}>
           {isTop3 && (
             <Text style={styles.medal}>
-              {item.rank === 1 ? '👑' : item.rank === 2 ? '🥈' : '🥉'}
+              {item.rank === 1 ? '1' : item.rank === 2 ? '2' : '3'}
             </Text>
           )}
           <Text style={[
@@ -67,6 +71,13 @@ const ClassementScreen = ({ navigation }) => {
     );
   };
 
+  const renderEmpty = () => (
+    <View style={styles.emptyContainer}>
+      <Text style={styles.emptyText}>Aucun score enregistré</Text>
+      <Text style={styles.emptySubtext}>Jouez une partie pour apparaitre ici !</Text>
+    </View>
+  );
+
   return (
     <LinearGradient
       colors={['#0a014f', '#120078', '#9d00ff']}
@@ -87,12 +98,17 @@ const ClassementScreen = ({ navigation }) => {
             <Text style={styles.headerText}>Score</Text>
           </View>
 
-          <FlatList
-            data={CLASSMENT_DATA}
-            renderItem={renderItem}
-            keyExtractor={item => item.id}
-            contentContainerStyle={styles.listContent}
-          />
+          {loading ? (
+            <Text style={styles.loadingText}>Chargement...</Text>
+          ) : (
+            <FlatList
+              data={classementData}
+              renderItem={renderItem}
+              keyExtractor={item => item.id}
+              contentContainerStyle={styles.listContent}
+              ListEmptyComponent={renderEmpty}
+            />
+          )}
         </View>
 
         <TouchableOpacity
@@ -249,6 +265,25 @@ const styles = StyleSheet.create({
   },
   backButton: {
     marginTop: 'auto',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  emptyText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  emptySubtext: {
+    color: '#aaa',
+    fontSize: 14,
+  },
+  loadingText: {
+    color: '#fff',
+    textAlign: 'center',
+    padding: 20,
   },
 });
 
