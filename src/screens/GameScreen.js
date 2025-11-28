@@ -1,87 +1,139 @@
-// GameScreen.js
+// src/screens/GameScreen.js
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, StyleSheet, TouchableOpacity } from 'react-native';
-import { Audio } from 'expo-av';
+import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView } from 'react-native';
+import { useTracks } from '../hooks/UseTracks';
+import AudioPlayer from '../components/game/AudioPlayer';
+import QCM from '../components/game/QCM';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 
-const GameScreen = ({ navigation, route }) => {
-  const [sound, setSound] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+const GameScreen = ({ navigation }) => {
+  const { tracks, loading } = useTracks('2000s', 10);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentTrack, setCurrentTrack] = useState(null);
+  const [score, setScore] = useState(0);
+  const [options, setOptions] = useState([]);
 
-  // Exemple de morceau (en attendant l'API)
-  const sampleTrack = {
-    trackName: 'One More Time',
-    artistName: 'Daft Punk',
-    previewUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/18/8b/5d/188b5d61-5d45-bbfa-ff58-d4c1f15f3ed8/mzaf_8996501927000123115.plus.aac.p.m4a'
+  const shuffleArray = (array) => array.sort(() => Math.random() - 0.5);
+
+  const generateQuestion = (index) => {
+    if (tracks.length === 0) return;
+    const track = tracks[index];
+    setCurrentTrack(track);
+
+    let otherTracks = tracks.filter(t => t.trackName !== track.trackName);
+    otherTracks = shuffleArray(otherTracks).slice(0, 3);
+    setOptions(shuffleArray([track, ...otherTracks]));
   };
 
-  const playSound = async () => {
-    if (sound) {
-      await sound.stopAsync();
-      await sound.unloadAsync();
+  const handleAnswer = (answer) => {
+    if (answer.trackName === currentTrack.trackName) {
+      setScore(prev => prev + 1);
+      Alert.alert('Bonne réponse !');
+    } else {
+      Alert.alert(`Faux ! C'était ${currentTrack.trackName}`);
     }
-
-    const { sound: newSound } = await Audio.Sound.createAsync(
-      { uri: sampleTrack.previewUrl },
-      { shouldPlay: true }
-    );
-    setSound(newSound);
-    setIsPlaying(true);
-
-    newSound.setOnPlaybackStatusUpdate(status => {
-      if (status.didJustFinish) {
-        setIsPlaying(false);
-      }
-    });
+    nextTrack();
   };
 
-  const stopSound = async () => {
-    if (sound) {
-      await sound.stopAsync();
-      setIsPlaying(false);
+  const nextTrack = () => {
+    const nextIndex = currentIndex + 1;
+    if (nextIndex >= tracks.length) {
+      Alert.alert('Fin du jeu', `Score final : ${score}`);
+      navigation.goBack();
+      return;
     }
+    setCurrentIndex(nextIndex);
+    generateQuestion(nextIndex); // mise à jour du track
   };
 
   useEffect(() => {
-    return () => {
-      if (sound) {
-        sound.unloadAsync();
-      }
-    };
-  }, [sound]);
+    if (!loading && tracks.length > 0) {
+      generateQuestion(currentIndex);
+    }
+  }, [loading, tracks]);
+
+  if (loading || !currentTrack) {
+    return (
+      <LinearGradient colors={['#0a014f', '#120078', '#9d00ff']} style={styles.wrapper}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loading}>Chargement des morceaux...</Text>
+        </View>
+      </LinearGradient>
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>🎵 Devine le titre !</Text>
-      <Text style={styles.track}>Artiste : {sampleTrack.artistName}</Text>
-      {/* Bouton Play / Stop */}
-      <TouchableOpacity
-        style={styles.playButton}
-        onPress={isPlaying ? stopSound : playSound}
-      >
-        <Text style={styles.playButtonText}>{isPlaying ? 'Stop' : 'Jouer le son'}</Text>
-      </TouchableOpacity>
+    <LinearGradient colors={['#0a014f', '#120078', '#9d00ff']} style={styles.wrapper}>
+      <ScrollView contentContainerStyle={{ ...styles.container, flexGrow: 1 }}>
+        <Text style={styles.title}>🎵 Devine le titre !</Text>
+        <Text style={styles.artist}>Artiste : {currentTrack.artistName}</Text>
+        <Text style={styles.counter}>Morceau {currentIndex + 1}/{tracks.length}</Text>
 
-      {/* Exemple de réponse */}
-      <View style={styles.answers}>
-        <Button title="One More Time" onPress={() => alert('Bonne réponse !')} />
-        <Button title="Around the World" onPress={() => alert('Faux !')} />
-        <Button title="Harder, Better, Faster, Stronger" onPress={() => alert('Faux !')} />
-        <Button title="Digital Love" onPress={() => alert('Faux !')} />
-      </View>
+        <View style={styles.progressContainer}>
+          <AudioPlayer track={currentTrack} onEnd={nextTrack} />
+          <TouchableOpacity onPress={nextTrack} style={styles.skipIcon}>
+            <Ionicons name="arrow-forward-outline" size={28} color="#fff" />
+          </TouchableOpacity>
+        </View>
 
-      {/* Retour Home */}
-      <Button title="Retour Home" onPress={() => navigation.goBack()} />
-    </View>
+        <QCM options={options} onSelect={handleAnswer} />
+
+        <Text style={styles.score}>Score: {score}</Text>
+
+        <TouchableOpacity style={styles.button} onPress={() => navigation.goBack()}>
+          <LinearGradient colors={['#ff00c8', '#b300ff']} style={styles.buttonGradient}>
+            <Text style={styles.buttonText}>Retour Home</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </ScrollView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 20 },
-  track: { fontSize: 18, marginBottom: 20 },
-  playButton: { backgroundColor: '#1DB954', padding: 15, borderRadius: 30, marginBottom: 20 },
-  playButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  answers: { width: '100%', marginBottom: 20 },
+  wrapper: {
+    flex: 1,
+  },
+  container: { 
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  title: { 
+    fontSize: 28, 
+    fontWeight: 'bold', 
+    marginBottom: 20, 
+    textAlign: 'center', 
+    color: '#fff',
+    textShadowColor: '#a400ff',
+    textShadowRadius: 10
+  },
+  artist: { fontSize: 18, marginBottom: 10, color: '#fff' },
+  counter: { fontSize: 16, marginBottom: 15, color: '#ccc' },
+  score: { fontSize: 18, marginTop: 10, color: '#fff' },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  loading: { fontSize: 18, color: '#fff' },
+  button: { 
+    marginVertical: 10, 
+    width: '80%', 
+    borderRadius: 32, 
+    shadowColor: '#000', 
+    shadowOffset: { width: 0, height: 5 }, 
+    shadowOpacity: 0.3, 
+    shadowRadius: 5, 
+    elevation: 8 
+  },
+  buttonGradient: { paddingVertical: 15, borderRadius: 28, alignItems: 'center' },
+  buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  progressContainer: { 
+    width: '80%', 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    marginVertical: 15 
+  },
+  skipIcon: { marginLeft: 10 }
 });
 
 export default GameScreen;

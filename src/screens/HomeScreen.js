@@ -1,87 +1,95 @@
 // HomeScreen.js
 import React from 'react';
-import { ScrollView, View, Text, Button, StyleSheet, TouchableOpacity } from 'react-native';
+import { ScrollView, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const HomeScreen = ({ navigation }) => {
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Header */}
-      <Text style={styles.title}>🎵 Blind Test Party</Text>
-      <Text style={styles.subtitle}>Devine le son en 30jyhgyugyufufuy secondes !</Text>
+    <LinearGradient
+      colors={['#0a014f', '#120078', '#9d00ff']}
+      style={styles.wrapper}
+    >
+      <ScrollView contentContainerStyle={{ ...styles.container, flexGrow: 1 }}>
+        
+        <Text style={styles.title}>SongSwipe</Text>
 
-      {/* Bouton principal */}
-      <TouchableOpacity
-        style={styles.playButton}
-        onPress={() => navigation.navigate('Game')} // navigation vers GameScreen
-      >
-        <Text style={styles.playButtonText}>Jouer Maintenant</Text>
-      </TouchableOpacity>
+        <Text style={styles.subtitle}>
+          Défie tes amis et ta famille dans ce jeu de blind test musical palpitant !{"\n"}{"\n"}
+        </Text>
 
-      {/* Modes de jeu */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Modes de jeu</Text>
-        <Button title="Mode Classique" onPress={() => navigation.navigate('Game')} />
-        <Button title="QCM" onPress={() => navigation.navigate('Game')} />
-        <Button title="Speed Run" onPress={() => navigation.navigate('Game')} />
-      </View>
+        <TouchableOpacity onPress={() => navigation.navigate('Game')} activeOpacity={0.8}>
+          <LinearGradient
+            colors={['#ff00c8', '#b300ff']}
+            style={styles.buttonBorder}
+          >
+            <View style={styles.buttonContent}>
+              <Text style={styles.buttonText}>COMMENCER</Text>
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
 
-      {/* Catégories */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Catégories</Text>
-        <Button title="Années 2000" onPress={() => navigation.navigate('Game')} />
-        <Button title="Pop" onPress={() => navigation.navigate('Game')} />
-        <Button title="Rock" onPress={() => navigation.navigate('Game')} />
-        <Button title="Rap" onPress={() => navigation.navigate('Game')} />
-      </View>
 
-      {/* Paramètres / autres */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Paramètres</Text>
-        <Button title="Règles du jeu" onPress={() => alert('Règles du jeu : devine le titre ou l’artiste !')} />
-      </View>
-    </ScrollView>
+
+      </ScrollView>
+    </LinearGradient>
   );
 };
 
+export default HomeScreen;
+
+
 const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+  },
   container: {
     padding: 20,
-    paddingBottom: 50,
     alignItems: 'center',
-    backgroundColor: '#fff',
+    justifyContent: 'center',
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginVertical: 10,
-  },
-  subtitle: {
-    fontSize: 16,
-    marginBottom: 20,
-    color: '#555',
+    fontSize: 48,
+    fontWeight: '900',
+    fontStyle: 'italic',
     textAlign: 'center',
+    color: '#ffffff',
+    textShadowColor: '#a400ff',
+    textShadowRadius: 25,
+    marginBottom: 40,
   },
-  playButton: {
-    backgroundColor: '#1DB954',
+
+  subtitle: {
+    color: '#ddd',
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 40,
+    fontStyle: 'italic',
+    width: '80%',
+  },
+  buttonBorder: {
+    borderRadius: 32,    
+    padding: 4,            
+    marginVertical: 10,
+
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+  },
+
+  buttonContent: {
+    backgroundColor: '#be68b4ffff',
+    borderRadius: 28,         
     paddingVertical: 15,
-    paddingHorizontal: 40,
-    borderRadius: 30,
-    marginBottom: 30,
+    paddingHorizontal: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  playButtonText: {
+
+  buttonText: {
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
   },
-  section: {
-    width: '100%',
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 10,
-  },
 });
-
-export default HomeScreen;
