@@ -1,8 +1,7 @@
-// src/services/itunesAPI.js
-export const fetchTracks = async (term = '2000s', country = 'fr', limit = 10) => {
+export const fetchTracksPop = async (limit = 10) => {
   try {
     const response = await fetch(
-      `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&country=${country}&limit=${limit}&media=music&entity=song`
+      `https://itunes.apple.com/search?term=pop&country=fr&limit=${limit}&media=music&entity=song`
     );
     const data = await response.json();
 
@@ -17,7 +16,7 @@ export const fetchTracks = async (term = '2000s', country = 'fr', limit = 10) =>
 
     return [];
   } catch (error) {
-    console.error('Erreur fetchTracks:', error);
+    console.error('Erreur fetchTracksPop:', error);
     return [];
   }
 };

@@ -12,6 +12,8 @@ export default function DifficultyScreen({ navigation, route }) {
   const handleDifficultySelection = (difficulty) => {
     if (difficulty === 'easy' && mode === 'solo') {
       navigation.navigate('Game', { difficulty, mode });
+    } else if (difficulty === 'hard' && mode === 'solo') {
+      navigation.navigate('GameHard', { difficulty, mode });
     } else {
       alert(`Mode ${mode === 'solo' ? 'Solo' : 'Multijoueur'} ${difficulty === 'easy' ? 'Facile' : 'Difficile'} - En développement!`);
     }
