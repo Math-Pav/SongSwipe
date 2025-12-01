@@ -30,13 +30,26 @@ const GameScreen = ({ navigation }) => {
 
   const generateQuestion = (index) => {
     if (tracks.length === 0) return;
+
     const track = tracks[index];
     setCurrentTrack(track);
 
-    let otherTracks = tracks.filter(t => t.trackName !== track.trackName);
-    otherTracks = shuffleArray(otherTracks).slice(0, 3);
+    // On filtre tous les autres morceaux valides (avec preview)
+    const pool = tracks.filter(t => t.trackName !== track.trackName && t.previewUrl);
+
+    // On choisit 3 morceaux aléatoires uniques pour le QCM
+    let otherTracks = [];
+    const poolCopy = [...pool]; // pour ne pas modifier l'original
+    while (otherTracks.length < 3 && poolCopy.length > 0) {
+      const randomIndex = Math.floor(Math.random() * poolCopy.length);
+      otherTracks.push(poolCopy.splice(randomIndex, 1)[0]);
+    }
+
+    // Mélanger la bonne réponse avec les autres morceaux
     setOptions(shuffleArray([track, ...otherTracks]));
   };
+
+
 
   const handleAnswer = (answer) => {
     if (answer.trackName === currentTrack.trackName) {

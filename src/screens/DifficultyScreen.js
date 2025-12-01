@@ -21,6 +21,13 @@ export default function DifficultyScreen({ navigation, route }) {
       }
       setSelectedDifficulty(difficulty);
       setShowPseudoModal(true);
+    } else if (difficulty === 'hard' && mode === 'solo') {
+      const savedPseudo = await AsyncStorage.getItem('userPseudo');
+      if (savedPseudo) {
+        setPseudo(savedPseudo);
+      }
+      setSelectedDifficulty(difficulty);
+      setShowPseudoModal(true);
     } else {
       Alert.alert(
         'Bientôt disponible',
@@ -29,6 +36,7 @@ export default function DifficultyScreen({ navigation, route }) {
     }
   };
 
+
   const handleStartGame = async () => {
     if (pseudo.trim().length < 2) {
       Alert.alert('Erreur', 'Le pseudo doit contenir au moins 2 caractères');
@@ -36,8 +44,14 @@ export default function DifficultyScreen({ navigation, route }) {
     }
     await AsyncStorage.setItem('userPseudo', pseudo.trim());
     setShowPseudoModal(false);
-    navigation.navigate('Game', { difficulty: selectedDifficulty, mode });
+
+    if (selectedDifficulty === 'easy') {
+      navigation.navigate('Game', { difficulty: selectedDifficulty, mode });
+    } else if (selectedDifficulty === 'hard') {
+      navigation.navigate('GameHard', { difficulty: selectedDifficulty, mode });
+    }
   };
+
 
   return (
     <LinearGradient colors={colors.gradientPrimary} style={styles.container}>
