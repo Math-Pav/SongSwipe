@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Modal 
-} from 'react-native';
+import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView, TextInput } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTracks } from '../hooks/UseTracks';
 import AudioPlayer from '../components/game/AudioPlayer';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { saveScore } from '../services/scoreService';
+import * as Haptics from 'expo-haptics';
 
 const GameHardScreen = ({ navigation }) => {
   const { tracks, loading } = useTracks('2000s', 10);
@@ -13,59 +14,84 @@ const GameHardScreen = ({ navigation }) => {
   const [currentTrack, setCurrentTrack] = useState(null);
   const [score, setScore] = useState(0);
   const [userAnswer, setUserAnswer] = useState('');
-  const [feedback, setFeedback] = useState('');
-  const [modalVisible, setModalVisible] = useState(false);
+  const [playerName, setPlayerName] = useState('Joueur');
 
-  const generateTrack = (index) => {
+  useEffect(() => {
+    const loadPlayerName = async () => {
+      const pseudo = await AsyncStorage.getItem('userPseudo');
+      if (pseudo) {
+        setPlayerName(pseudo);
+      }
+    };
+    loadPlayerName();
+  }, []);
+
+  const generateQuestion = (index) => {
     if (tracks.length === 0) return;
-    setCurrentTrack(tracks[index]);
+    const track = tracks[index];
+    setCurrentTrack(track);
     setUserAnswer('');
-    setFeedback('');
-    setModalVisible(false);
   };
 
-  const nextTrack = (timeout = false) => {
-    // Si timeout et réponse pas correcte -> montrer modal
-    if (timeout && userAnswer.trim().toLowerCase() !== currentTrack.trackName.trim().toLowerCase()) {
-      setModalVisible(true);
+  const normalizeString = (str) => {
+    return str
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]/g, '')
+      .trim();
+  };
+
+  const handleSubmit = () => {
+    if (!userAnswer.trim()) {
+      Alert.alert('Erreur', 'Veuillez entrer une réponse');
       return;
     }
 
+    const normalizedAnswer = normalizeString(userAnswer);
+    const normalizedTrack = normalizeString(currentTrack.trackName);
+
+    if (normalizedTrack.includes(normalizedAnswer) || normalizedAnswer.includes(normalizedTrack)) {
+      setScore(prev => prev + 1);
+      Alert.alert('Bonne réponse !');
+    } else {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Alert.alert('Faux !', `C'était ${currentTrack.trackName}`);
+    }
+    nextTrack();
+  };
+
+  const endGame = async (finalScore) => {
+    await saveScore(playerName, finalScore);
+    Alert.alert(
+      'Fin du jeu',
+      `Score final : ${finalScore}`,
+      [
+        {
+          text: 'Voir classement',
+          onPress: () => navigation.navigate('Classement'),
+        },
+        {
+          text: 'Retour',
+          onPress: () => navigation.goBack(),
+        },
+      ]
+    );
+  };
+
+  const nextTrack = () => {
     const nextIndex = currentIndex + 1;
     if (nextIndex >= tracks.length) {
-      Alert.alert('Fin du jeu', `Score final : ${score}`);
-      navigation.goBack();
+      endGame(score);
       return;
     }
     setCurrentIndex(nextIndex);
-    generateTrack(nextIndex);
+    generateQuestion(nextIndex);
   };
 
-  const normalize = (str) =>
-    str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w\s]/g, '').trim();
-
-  const isCorrect = () => {
-    if (!currentTrack) return false;
-    const trackWords = normalize(currentTrack.trackName).split(' ');
-    const answerWords = normalize(userAnswer).split(' ');
-    return trackWords.every(word => answerWords.includes(word));
-  };
-
-  const handleAnswerSubmit = () => {
-    if (isCorrect()) {
-      setFeedback('✅ Correct !');
-      setScore(prev => prev + 1);
-      setUserAnswer('');
-      setTimeout(() => nextTrack(false), 800);
-    } else {
-      setFeedback('❌ Faux, essaie encore !');
-    }
-  };
-
-  // Génère le premier track
   useEffect(() => {
     if (!loading && tracks.length > 0) {
-      generateTrack(currentIndex);
+      generateQuestion(currentIndex);
     }
   }, [loading, tracks]);
 
@@ -81,47 +107,42 @@ const GameHardScreen = ({ navigation }) => {
 
   return (
     <LinearGradient colors={['#0a014f', '#120078', '#9d00ff']} style={styles.wrapper}>
-      <ScrollView contentContainerStyle={{ ...styles.container, flexGrow: 1 }}>
-        <Text style={styles.title}>🎵 Devine le titre !</Text>
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.playerInfo}>Joueur : {playerName}</Text>
+        <Text style={styles.title}>Mode Difficile</Text>
+        <Text style={styles.artist}>Artiste : {currentTrack.artistName}</Text>
         <Text style={styles.counter}>Morceau {currentIndex + 1}/{tracks.length}</Text>
 
         <View style={styles.progressContainer}>
-          <AudioPlayer track={currentTrack} onEnd={() => nextTrack(true)} />
-          <TouchableOpacity onPress={() => nextTrack(false)} style={styles.skipIcon}>
+          <AudioPlayer track={currentTrack} onEnd={nextTrack} />
+          <TouchableOpacity onPress={nextTrack} style={styles.skipIcon}>
             <Ionicons name="arrow-forward-outline" size={28} color="#fff" />
           </TouchableOpacity>
         </View>
 
-        <View style={styles.answerContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Tape le titre ici"
-            placeholderTextColor="#ccc"
-            value={userAnswer}
-            onChangeText={setUserAnswer}
-          />
-          <TouchableOpacity style={styles.submitButton} onPress={handleAnswerSubmit}>
-            <Text style={styles.submitButtonText}>Valider</Text>
-          </TouchableOpacity>
+        <TextInput
+          style={styles.input}
+          placeholder="Entrez le titre..."
+          placeholderTextColor="#999"
+          value={userAnswer}
+          onChangeText={setUserAnswer}
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
 
-          {feedback !== '' && <Text style={styles.feedback}>{feedback}</Text>}
-        </View>
+        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+          <LinearGradient colors={['#00ff88', '#00cc6a']} style={styles.buttonGradient}>
+            <Text style={styles.buttonText}>Valider</Text>
+          </LinearGradient>
+        </TouchableOpacity>
 
         <Text style={styles.score}>Score: {score}</Text>
 
-        {/* Modal si réponse pas trouvée */}
-        <Modal visible={modalVisible} transparent animationType="fade">
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Temps écoulé !</Text>
-              <Text style={styles.modalText}>La bonne réponse était :</Text>
-              <Text style={styles.modalAnswer}>{currentTrack.trackName}</Text>
-              <TouchableOpacity onPress={() => nextTrack(false)} style={styles.modalButton}>
-                <Text style={styles.modalButtonText}>Suivant</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.goBack()}>
+          <LinearGradient colors={['#ff00c8', '#b300ff']} style={styles.buttonGradient}>
+            <Text style={styles.buttonText}>Retour Home</Text>
+          </LinearGradient>
+        </TouchableOpacity>
       </ScrollView>
     </LinearGradient>
   );
@@ -129,30 +150,31 @@ const GameHardScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   wrapper: { flex: 1 },
-  container: { padding: 20, alignItems: 'center', justifyContent: 'center' },
+  container: { padding: 20, alignItems: 'center', justifyContent: 'center', flexGrow: 1 },
   title: { fontSize: 28, fontWeight: 'bold', marginBottom: 20, textAlign: 'center', color: '#fff', textShadowColor: '#a400ff', textShadowRadius: 10 },
-  progressContainer: { width: '80%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginVertical: 15 },
-  skipIcon: { marginLeft: 10 },
-  answerContainer: { width: '80%', marginTop: 20, alignItems: 'center' },
-  input: { width: '100%', padding: 10, borderRadius: 8, backgroundColor: '#222', color: '#fff', marginBottom: 10 },
-  submitButton: { backgroundColor: '#ff00c8', paddingVertical: 12, paddingHorizontal: 30, borderRadius: 20, marginBottom: 10 },
-  submitButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  feedback: { color: '#fff', fontSize: 16, marginTop: 5 },
-  score: { fontSize: 18, marginTop: 10, color: '#fff' },
+  artist: { fontSize: 18, marginBottom: 10, color: '#fff' },
   counter: { fontSize: 16, marginBottom: 15, color: '#ccc' },
+  score: { fontSize: 18, marginTop: 10, color: '#fff' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loading: { fontSize: 18, color: '#fff' },
-  button: { marginVertical: 10, width: '80%', borderRadius: 32, shadowColor: '#000', shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.3, shadowRadius: 5, elevation: 8 },
+  button: { marginVertical: 10, width: '80%', borderRadius: 32 },
+  submitButton: { marginVertical: 10, width: '80%', borderRadius: 32 },
   buttonGradient: { paddingVertical: 15, borderRadius: 28, alignItems: 'center' },
-
-  // Modal
-  modalContainer: { flex:1, justifyContent:'center', alignItems:'center', backgroundColor:'rgba(0,0,0,0.6)' },
-  modalContent: { backgroundColor:'#222', padding:20, borderRadius:12, alignItems:'center', width:'80%' },
-  modalTitle: { fontSize:24, color:'#fff', fontWeight:'bold', marginBottom:10 },
-  modalText: { fontSize:18, color:'#fff', marginBottom:10 },
-  modalAnswer: { fontSize:20, color:'#ff00c8', fontWeight:'bold', marginBottom:15 },
-  modalButton: { backgroundColor:'#ff00c8', paddingVertical:10, paddingHorizontal:25, borderRadius:20 },
-  modalButtonText: { color:'#fff', fontWeight:'bold', fontSize:16 },
+  buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  progressContainer: { width: '80%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginVertical: 15 },
+  skipIcon: { marginLeft: 10 },
+  playerInfo: { fontSize: 14, color: '#ccc', marginBottom: 10 },
+  input: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    fontSize: 18,
+    color: '#0a014f',
+    width: '80%',
+    textAlign: 'center',
+    marginVertical: 20,
+  },
 });
 
 export default GameHardScreen;

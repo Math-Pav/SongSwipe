@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Alert, Modal, TextInput, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,19 +13,27 @@ export default function DifficultyScreen({ navigation, route }) {
   const [pseudo, setPseudo] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState(null);
 
-  const handleDifficultySelection = async (difficulty) => {
-    if (difficulty === 'easy' && mode === 'solo') {
-      navigation.navigate('Game', { difficulty, mode });
-    } else if (difficulty === 'hard' && mode === 'solo') {
-      navigation.navigate('GameHard', { difficulty, mode });
+  useEffect(() => {
+    const loadPseudo = async () => {
+      const savedPseudo = await AsyncStorage.getItem('userPseudo');
+      if (savedPseudo) {
+        setPseudo(savedPseudo);
+      }
+    };
+    loadPseudo();
+  }, []);
+
+  const handleDifficultySelection = (difficulty) => {
+    if (mode === 'solo') {
+      setSelectedDifficulty(difficulty);
+      setShowPseudoModal(true);
     } else {
       Alert.alert(
         'Bientôt disponible',
-        `Mode ${mode === 'solo' ? 'Solo' : 'Multijoueur'} ${difficulty === 'easy' ? 'Facile' : 'Difficile'} - En développement!`
+        `Mode Multijoueur ${difficulty === 'easy' ? 'Facile' : 'Difficile'} - En développement!`
       );
     }
   };
-
 
   const handleStartGame = async () => {
     if (pseudo.trim().length < 2) {
@@ -41,7 +49,6 @@ export default function DifficultyScreen({ navigation, route }) {
       navigation.navigate('GameHard', { difficulty: selectedDifficulty, mode });
     }
   };
-
 
   return (
     <LinearGradient colors={colors.gradientPrimary} style={styles.container}>

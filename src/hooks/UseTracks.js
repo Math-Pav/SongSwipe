@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
-import { fetchTracks } from '../services/API';
+import { fetchPopularTracks } from '../services/API';
 
 const cleanTrackName = (trackName) => {
   if (!trackName) return null;
 
-  // Supprime tout ce qui est entre parenthèses ou crochets
   let name = trackName.replace(/\(.*?\)|\[.*?\]/g, '').trim();
 
-  // Ne garder que les titres "significatifs"
   if (
     name.length <= 2 ||                // trop court
     /^\d{4}s?$/.test(name) ||          // 2000 ou 2000s
@@ -27,15 +25,18 @@ export const useTracks = (term = '2000s', limit = 10) => {
   useEffect(() => {
     const loadTracks = async () => {
       setLoading(true);
-      const result = await fetchTracks(term, 'fr', limit);
+      const result = await fetchPopularTracks(limit * 4);
 
       // Nettoie et filtre les tracks
       const filtered = result
         .map(track => ({ ...track, trackName: cleanTrackName(track.trackName) }))
-        .filter(track => track.trackName); // ne garder que les titres valides
+        .filter(track => track.trackName && track.previewUrl); // ne garder que les titres valides
 
+      const uniqueTracks = filtered.filter((track, index, self) =>
+        index === self.findIndex(t => t.trackName === track.trackName)
+      );
 
-      setTracks(filtered);
+      setTracks(uniqueTracks.slice(0, limit));
       setLoading(false);
     };
 
