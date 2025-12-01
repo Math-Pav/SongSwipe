@@ -6,6 +6,12 @@ import ModeScreen from '../screens/ModeScreen';
 import GameScreen from '../screens/GameScreen';
 import ClassementScreen from '../screens/ClassementScreen';
 import GameHardScreen from '../screens/GameHardScreen';
+import MultiplayerScreen from '../screens/MultiplayerScreen';
+import CreateGameScreen from '../screens/CreateGameScreen';
+import JoinGameScreen from '../screens/JoinGameScreen';
+import LobbyScreen from '../screens/LobbyScreen';
+import GameMultiScreen from '../screens/GameMultiScreen';
+import GameMultiResultsScreen from '../screens/GameMultiResultsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -22,6 +28,12 @@ export default function App() {
         <Stack.Screen name="Game" component={GameScreen} />
         <Stack.Screen name="Classement" component={ClassementScreen} />
         <Stack.Screen name="GameHard" component={GameHardScreen} />
+        <Stack.Screen name="Multiplayer" component={MultiplayerScreen} />
+        <Stack.Screen name="CreateGame" component={CreateGameScreen} />
+        <Stack.Screen name="JoinGame" component={JoinGameScreen} />
+        <Stack.Screen name="Lobby" component={LobbyScreen} />
+        <Stack.Screen name="GameMulti" component={GameMultiScreen} />
+        <Stack.Screen name="GameMultiResults" component={GameMultiResultsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

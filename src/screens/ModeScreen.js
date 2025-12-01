@@ -13,21 +13,24 @@ export default function ModeScreen({ navigation }) {
       title: 'Solo', 
       icon: 'person', 
       description: 'Jouez seul et améliorez votre score',
-      available: true 
+      available: true,
+      screen: 'Difficulty'
     },
     { 
       id: 'multi', 
       title: 'Multijoueur', 
       icon: 'people', 
-      description: 'Défiez vos amis en ligne',
-      available: false 
+      description: 'Défiez vos amis en temps réel',
+      available: true,
+      screen: 'Multiplayer'
     },
     { 
       id: 'training', 
       title: 'Entraînement', 
       icon: 'barbell', 
       description: 'Mode libre sans limite de temps',
-      available: false 
+      available: false,
+      screen: null
     },
   ];
 
@@ -62,8 +65,12 @@ export default function ModeScreen({ navigation }) {
             <Button
               title={mode.available ? 'Jouer' : 'Indisponible'}
               onPress={() => {
-                if (mode.available) {
-                  navigation.navigate('Difficulty', { mode: mode.id });
+                if (mode.available && mode.screen) {
+                  if (mode.id === 'solo') {
+                    navigation.navigate(mode.screen, { mode: mode.id });
+                  } else {
+                    navigation.navigate(mode.screen);
+                  }
                 }
               }}
               variant={mode.available ? 'primary' : 'secondary'}
