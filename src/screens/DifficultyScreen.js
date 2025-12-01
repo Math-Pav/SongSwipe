@@ -15,19 +15,9 @@ export default function DifficultyScreen({ navigation, route }) {
 
   const handleDifficultySelection = async (difficulty) => {
     if (difficulty === 'easy' && mode === 'solo') {
-      const savedPseudo = await AsyncStorage.getItem('userPseudo');
-      if (savedPseudo) {
-        setPseudo(savedPseudo);
-      }
-      setSelectedDifficulty(difficulty);
-      setShowPseudoModal(true);
+      navigation.navigate('Game', { difficulty, mode });
     } else if (difficulty === 'hard' && mode === 'solo') {
-      const savedPseudo = await AsyncStorage.getItem('userPseudo');
-      if (savedPseudo) {
-        setPseudo(savedPseudo);
-      }
-      setSelectedDifficulty(difficulty);
-      setShowPseudoModal(true);
+      navigation.navigate('GameHard', { difficulty, mode });
     } else {
       Alert.alert(
         'Bientôt disponible',

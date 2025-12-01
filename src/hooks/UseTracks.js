@@ -4,31 +4,35 @@ import { fetchTracks } from '../services/API';
 const cleanTrackName = (trackName) => {
   if (!trackName) return null;
 
+  // Supprime tout ce qui est entre parenthèses ou crochets
   let name = trackName.replace(/\(.*?\)|\[.*?\]/g, '').trim();
 
-  // On ignore uniquement les titres exactement "2000s" ou "2000's"
-  if (/^2000'?s$/i.test(name)) return null;
-
-  // On peut aussi ignorer les titres vides ou trop courts
-  if (name.length < 2) return null;
+  // Ne garder que les titres "significatifs"
+  if (
+    name.length <= 2 ||                // trop court
+    /^\d{4}s?$/.test(name) ||          // 2000 ou 2000s
+    /^20\d{2}.*$/.test(name)           // exemple: 2000's ou 2023 remix
+  ) {
+    return null;
+  }
 
   return name;
 };
 
 
-
-export const useTracks = (term = '2000s', limit = 40) => {
+export const useTracks = (term = '2000s', limit = 10) => {
   const [tracks, setTracks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadTracks = async () => {
       setLoading(true);
-      const result = await fetchTracks(term, null, limit);
+      const result = await fetchTracks(term, 'fr', limit);
 
+      // Nettoie et filtre les tracks
       const filtered = result
         .map(track => ({ ...track, trackName: cleanTrackName(track.trackName) }))
-        .filter(track => track.trackName && track.previewUrl); // garder seulement les morceaux avec preview
+        .filter(track => track.trackName); // ne garder que les titres valides
 
 
       setTracks(filtered);
