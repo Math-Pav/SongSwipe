@@ -7,6 +7,7 @@ import QCM from '../components/game/QCM';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { saveScore } from '../services/scoreService';
+import * as Haptics from 'expo-haptics';
 
 const GameScreen = ({ navigation }) => {
   const { tracks, loading } = useTracks('2000s', 10);
@@ -49,13 +50,12 @@ const GameScreen = ({ navigation }) => {
     setOptions(shuffleArray([track, ...otherTracks]));
   };
 
-
-
   const handleAnswer = (answer) => {
     if (answer.trackName === currentTrack.trackName) {
       setScore(prev => prev + 1);
       Alert.alert('Bonne réponse !');
     } else {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Alert.alert(`Faux ! C'était ${currentTrack.trackName}`);
     }
     nextTrack();
