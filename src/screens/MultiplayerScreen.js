@@ -1,10 +1,31 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, borderRadius } from '../theme';
 
 export default function MultiplayerScreen({ navigation }) {
+  const [player1, setPlayer1] = useState('');
+  const [player2, setPlayer2] = useState('');
+
+  const handleStart = (difficulty) => {
+    if (player1.trim().length < 2 || player2.trim().length < 2) {
+      Alert.alert('Erreur', 'Les pseudos doivent contenir au moins 2 caractères');
+      return;
+    }
+
+    if (player1.trim().toLowerCase() === player2.trim().toLowerCase()) {
+      Alert.alert('Erreur', 'Les pseudos doivent être différents');
+      return;
+    }
+
+    navigation.navigate('GameMultiLocal', {
+      player1: player1.trim(),
+      player2: player2.trim(),
+      difficulty,
+    });
+  };
+
   return (
     <LinearGradient colors={colors.gradientPrimary} style={styles.container}>
       <TouchableOpacity 
@@ -14,35 +35,67 @@ export default function MultiplayerScreen({ navigation }) {
         <Ionicons name="arrow-back" size={28} color={colors.white} />
       </TouchableOpacity>
 
+      <TouchableOpacity 
+        style={styles.classementButton}
+        onPress={() => navigation.navigate('ClassementDuel')}
+      >
+        <Ionicons name="trophy" size={28} color="#ffd700" />
+      </TouchableOpacity>
+
       <View style={styles.content}>
-        <Text style={styles.title}>Multijoueur</Text>
-        <Text style={styles.subtitle}>Jouez avec vos amis en temps réel</Text>
+        <Ionicons name="people" size={80} color={colors.accent} />
+        <Text style={styles.title}>Duel Local</Text>
+        <Text style={styles.subtitle}>2 joueurs, 1 téléphone, tour par tour</Text>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Joueur 1</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Pseudo joueur 1"
+            placeholderTextColor="#999"
+            value={player1}
+            onChangeText={setPlayer1}
+            maxLength={15}
+            autoCapitalize="none"
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Joueur 2</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Pseudo joueur 2"
+            placeholderTextColor="#999"
+            value={player2}
+            onChangeText={setPlayer2}
+            maxLength={15}
+            autoCapitalize="none"
+          />
+        </View>
 
         <TouchableOpacity
-          style={styles.optionCard}
-          onPress={() => navigation.navigate('CreateGame')}
+          style={styles.button}
+          onPress={() => handleStart('easy')}
         >
           <LinearGradient
-            colors={['#ff00c8', '#b300ff']}
-            style={styles.cardGradient}
+            colors={['#00ff88', '#00cc6a']}
+            style={styles.buttonGradient}
           >
-            <Ionicons name="add-circle" size={50} color={colors.white} />
-            <Text style={styles.cardTitle}>Créer une partie</Text>
-            <Text style={styles.cardDescription}>Invitez vos amis avec un code</Text>
+            <Ionicons name="checkmark-circle" size={24} color={colors.white} />
+            <Text style={styles.buttonText}>Mode Facile (QCM)</Text>
           </LinearGradient>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.optionCard}
-          onPress={() => navigation.navigate('JoinGame')}
+          style={styles.button}
+          onPress={() => handleStart('hard')}
         >
           <LinearGradient
-            colors={['#4facfe', '#00f2fe']}
-            style={styles.cardGradient}
+            colors={['#ff6b6b', '#ee5a5a']}
+            style={styles.buttonGradient}
           >
-            <Ionicons name="enter" size={50} color={colors.white} />
-            <Text style={styles.cardTitle}>Rejoindre une partie</Text>
-            <Text style={styles.cardDescription}>Entrez un code pour jouer</Text>
+            <Ionicons name="flame" size={24} color={colors.white} />
+            <Text style={styles.buttonText}>Mode Difficile (Input)</Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -53,7 +106,6 @@ export default function MultiplayerScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: spacing.xxl,
   },
   backButton: {
     position: 'absolute',
@@ -62,44 +114,70 @@ const styles = StyleSheet.create({
     zIndex: 10,
     padding: spacing.sm,
   },
+  classementButton: {
+    position: 'absolute',
+    top: spacing.xxl + spacing.md,
+    right: spacing.lg,
+    zIndex: 10,
+    padding: spacing.sm,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 12,
+  },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.xl,
   },
   title: {
-    ...typography.h1,
+    ...typography.h2,
     color: colors.white,
-    marginBottom: spacing.sm,
-    textAlign: 'center',
+    marginTop: spacing.lg,
+    marginBottom: spacing.xs,
   },
   subtitle: {
     ...typography.body,
     color: colors.white,
     opacity: 0.8,
-    marginBottom: spacing.xxl,
+    marginBottom: spacing.xl,
     textAlign: 'center',
   },
-  optionCard: {
+  inputContainer: {
     width: '100%',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  label: {
+    color: colors.white,
+    fontSize: typography.fontSize.base,
+    marginBottom: spacing.xs,
+    fontWeight: '600',
+  },
+  input: {
+    backgroundColor: colors.white,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    fontSize: typography.fontSize.lg,
+    color: colors.primaryDark,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  button: {
+    width: '100%',
     borderRadius: borderRadius.lg,
     overflow: 'hidden',
-  },
-  cardGradient: {
-    padding: spacing.xl,
-    alignItems: 'center',
-  },
-  cardTitle: {
-    ...typography.h3,
-    color: colors.white,
     marginTop: spacing.md,
-    marginBottom: spacing.xs,
   },
-  cardDescription: {
-    ...typography.body,
+  buttonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.lg,
+    gap: spacing.sm,
+  },
+  buttonText: {
     color: colors.white,
-    opacity: 0.8,
+    fontSize: typography.fontSize.lg,
+    fontWeight: 'bold',
   },
 });

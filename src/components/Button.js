@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, borderRadius, shadows } from '../theme';
 
 export default function Button({ 
@@ -9,16 +10,22 @@ export default function Button({
   variant = 'primary', 
   size = 'medium',
   disabled = false,
+  icon = null,
   style 
 }) {
   const getGradientColors = () => {
+    if (disabled) return [colors.disabled, colors.disabled];
     switch (variant) {
       case 'primary':
         return colors.gradientAccent;
       case 'secondary':
         return colors.gradientSecondary;
+      case 'success':
+        return colors.gradientSuccess;
+      case 'danger':
+        return colors.gradientDanger;
       case 'white':
-        return [colors.white, colors.white];
+        return [colors.white, '#f5f5f5'];
       default:
         return colors.gradientPrimary;
     }
@@ -33,25 +40,28 @@ export default function Button({
       case 'small':
         return { paddingVertical: 12, paddingHorizontal: 24 };
       case 'large':
-        return { paddingVertical: 20, paddingHorizontal: 80 };
+        return { paddingVertical: 20, paddingHorizontal: 50 };
       default:
-        return { paddingVertical: 16, paddingHorizontal: 48 };
+        return { paddingVertical: 16, paddingHorizontal: 40 };
     }
   };
 
   return (
     <TouchableOpacity 
-      style={[styles.button, style]} 
-      onPress={disabled ? undefined : onPress}
+      style={[styles.button, disabled && styles.buttonDisabled, style]} 
+      onPress={onPress}
       disabled={disabled}
-      activeOpacity={0.8}
+      activeOpacity={0.85}
     >
       <LinearGradient
-        colors={disabled ? [colors.disabled, colors.disabled] : getGradientColors()}
+        colors={getGradientColors()}
         start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
+        end={{ x: 1, y: 1 }}
         style={[styles.gradient, getSizeStyle()]}
       >
+        {icon && (
+          <Ionicons name={icon} size={22} color={getTextColor()} style={styles.icon} />
+        )}
         <Text style={[styles.text, { color: getTextColor() }]}>
           {title}
         </Text>
@@ -66,12 +76,20 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     ...shadows.medium,
   },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
   gradient: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  icon: {
+    marginRight: 8,
   },
   text: {
     fontSize: typography.button.fontSize,
     fontWeight: typography.button.fontWeight,
+    letterSpacing: typography.button.letterSpacing,
   },
 });

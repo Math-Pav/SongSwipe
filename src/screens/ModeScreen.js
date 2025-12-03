@@ -18,9 +18,9 @@ export default function ModeScreen({ navigation }) {
     },
     { 
       id: 'multi', 
-      title: 'Multijoueur', 
+      title: 'Duel Local', 
       icon: 'people', 
-      description: 'Défiez vos amis en temps réel',
+      description: '2 joueurs, 1 téléphone, tour par tour',
       available: true,
       screen: 'Multiplayer'
     },
