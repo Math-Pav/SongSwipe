@@ -49,6 +49,8 @@ npm install
 npm start
 # ou
 npx expo start
+# ou
+npx expo start --tunnel
 
 # Lancer sur iOS (simulateur ou appareil)
 npm run ios
